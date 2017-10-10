@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="desired_object"       default="3_C.model" />
+  <arg name="experiment_label"     default="Oct_9_Exp_1_Id_1_PTCC_" />
+
+  <node name="central_controller" pkg="central_controller" type="central_controller" output="screen">
+    <param name="desired_object"       value="$(arg desired_object)"/>
+    <param name="experiment_label"     value="$(arg experiment_label)"/>
+  </node>
+</launch>

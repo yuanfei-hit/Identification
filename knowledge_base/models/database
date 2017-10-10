@@ -1,0 +1,92 @@
+#Model Database File Format
+TABLE0
+model_id 1
+similar_surface_model_ids 2 3 4 5 6 7 
+similar_slice_model_ids 6 7 
+similar_stiffness_model_ids 2 5 
+slice_ids 5 23 
+slice_heights 0.065 0.155 
+dist_similar_surface_model_ids 2
+2 3 4 
+4 5 
+END0
+TABLE1
+model_id 2
+similar_surface_model_ids 1 3 4 5 6 7 
+similar_slice_model_ids 7 
+similar_stiffness_model_ids 2 5 
+slice_ids 7 
+slice_heights 0.075 
+dist_similar_surface_model_ids 1
+1 3 4 5 6 
+END1
+TABLE2
+model_id 3
+similar_surface_model_ids 1 2 4 5 6 7 
+similar_slice_model_ids 
+similar_stiffness_model_ids 2 5 
+slice_ids 6 19 
+slice_heights 0.07 0.135 
+dist_similar_surface_model_ids 2
+1 2 5 6 7 
+4 
+END2
+TABLE3
+model_id 4
+similar_surface_model_ids 1 2 3 5 6 7 
+similar_slice_model_ids 
+similar_stiffness_model_ids 2 5 
+slice_ids 15 
+slice_heights 0.115 
+dist_similar_surface_model_ids 1
+1 2 3 5 6 7 
+END3
+TABLE4
+model_id 5
+similar_surface_model_ids 1 2 3 4 6 7 
+similar_slice_model_ids 6 
+similar_stiffness_model_ids 2 5 
+slice_ids 16 
+slice_heights 0.12 
+dist_similar_surface_model_ids 1
+1 2 3 4 7 
+END4
+TABLE5
+model_id 6
+similar_surface_model_ids 1 2 3 4 5 7 
+similar_slice_model_ids 1 5 7 
+similar_stiffness_model_ids 2 5 
+slice_ids 6 
+slice_heights 0.07 
+dist_similar_surface_model_ids 1
+2 3 4 
+END5
+TABLE6
+model_id 7
+similar_surface_model_ids 1 2 3 4 5 6 
+similar_slice_model_ids 1 2 6 
+similar_stiffness_model_ids 2 5 
+slice_ids 0 
+slice_heights 0.04 
+dist_similar_surface_model_ids 1
+3 4 5 
+END6
+TABLE7
+model_id 8
+similar_surface_model_ids 9 
+similar_slice_model_ids 9 
+similar_stiffness_model_ids 2 5 
+slice_ids 
+slice_heights 
+dist_similar_surface_model_ids 0
+END7
+TABLE8
+model_id 9
+similar_surface_model_ids 8 
+similar_slice_model_ids 8 
+similar_stiffness_model_ids 2 5 
+slice_ids 
+slice_heights 
+dist_similar_surface_model_ids 0
+END8
+FILEEND

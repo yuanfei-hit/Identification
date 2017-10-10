@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="lwr_chain_start"  default="base" />
+  <arg name="lwr_chain_end"    default="sdh_hand_gripper" /> 
+  <arg name="timeout"          default="0.05" />  
+  <arg name="arm_online_test"  default="off" /> 
+  <arg name="hand_online_test" default="off" />   
+
+  <!--param name="robot_description" textfile="$(find lwr_defs)/robots/lwr_hand_tactile.urdf" /-->
+  <param name="robot_description_semantic" textfile="$(find lwr_sdh_planner)/resources/lwr_simplified.srdf" />
+
+  <node name="planner" pkg="lwr_sdh_planner" type="planner" output="screen">
+    <param name="lwr_chain_start"  value="$(arg lwr_chain_start)"/>
+    <param name="lwr_chain_end"    value="$(arg lwr_chain_end)"/> 
+    <param name="timeout"          value="$(arg timeout)"/>
+    <param name="arm_online_test"  value="$(arg arm_online_test)"/>
+    <param name="hand_online_test" value="$(arg hand_online_test)"/>
+    
+    <param name="urdf_param"       value="/robot_description"/>    
+    
+    <param name="ConfigurationFile" type="string" value="$(find exotica_examples)/resources/ompl_solver_demo.xml" />
+    <param name="Solver"  type="string" value="MySolver" />
+    <param name="Problem" type="string" value="MyProblem" />
+  </node>
+
+  <!--node name="lwr_end_pos_pub_for_test" pkg="lwr_sdh_planner" type="lwr_end_pos_pub_for_test" output="screen"-->
+    <!--param name="lwr_chain_start"  value="$(arg lwr_chain_start)"/-->
+    <!--param name="lwr_chain_end"    value="$(arg lwr_chain_end)"/-->
+    <!--param name="timeout"          value="$(arg timeout)"/-->
+    <!--param name="urdf_param"       value="/robot_description"/-->
+  <!--/node--> 
+
+  <!-- Starting robot state publish which will publish tf -->
+  <!--node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" /-->
+  <!-- Launch visualization in rviz -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find lwr_sdh_planner)/resources/rviz.rviz" required="true" />
+
+</launch>

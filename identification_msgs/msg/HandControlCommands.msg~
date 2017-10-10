@@ -1,0 +1,7 @@
+std_msgs/Header       header
+bool[]                fingertip_contact_pose_valid_flag
+bool                  contact_feature_valid_flag
+geometry_msgs/Pose[]  fingertip_contact_pose_in_arm_base_frame
+float64[]             contact_force
+float64               contact_feature
+int32                 processing_loop_counter

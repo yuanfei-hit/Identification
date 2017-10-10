@@ -1,0 +1,13 @@
+std_msgs/Header     header
+
+geometry_msgs/Pose  thumb_fingertip_contact_pose
+geometry_msgs/Pose  finger1_fingertip_contact_pose
+geometry_msgs/Pose  finger2_fingertip_contact_pose
+
+string type
+bool running
+duration max_time
+duration mean_time
+duration variance_time
+int32 num_control_loop_overruns
+time time_last_control_loop_overrun

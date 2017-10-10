@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="update_crof2marker_transform"        default="start_online_once" />	
+	<!--arg name="update_crof2marker_transform"        default="use_default_value" /-->
+	
+	<arg name="used_marker_frame"                   default="ar_marker_4" />
+	<!--arg name="used_marker_frame"                   default="ar_marker_9-17" /-->
+	
+	<arg name="num_of_recording_marker_frame"       default="10" />
+	
+	
+	<node name="identifier_node" pkg="identifier" type="identifier" output="screen">
+		<param name="update_crof2marker_transform"  value="$(arg update_crof2marker_transform)"/>
+		<param name="used_marker_frame"             value="$(arg used_marker_frame)"/>
+		<param name="num_of_recording_marker_frame" value="$(arg num_of_recording_marker_frame)"/>
+		
+    	<!--param name="knowledge_database_path"  type="string" value="$(find knowledge_database)"/-->
+	</node>
+  
+</launch>

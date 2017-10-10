@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="contact_event_force_threshold"  default="0.21" />
+	<arg name="max_contact_force_threshold"    default="10.0" />  
+	<arg name="max_compression_threshold"      default="0.005" />
+
+	<node name="optoforce_node" pkg="optoforce_sensor" type="optoforce_sensor_node" output="screen"/>
+	
+	<node name="tactile_processor_node" pkg="tactile_processor" type="tactile_processor" output="screen">
+		<param name="contact_event_force_threshold"  value="$(arg contact_event_force_threshold)"/>
+   		<param name="max_contact_force_threshold"    value="$(arg max_contact_force_threshold)"/> 
+    	<param name="max_compression_threshold"      value="$(arg max_compression_threshold)"/>
+	</node>
+  
+</launch>

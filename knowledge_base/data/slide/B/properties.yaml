@@ -1,0 +1,58 @@
+%YAML:1.0
+# modelling parameter config
+sampling1:
+  search_radius: 0.025
+  polynomial_fit: 1
+  polynomial_order: 5
+  radius_search: 0.02
+  depth: 6
+
+modelling:
+  x_bias: 0.215
+  y_bias: -0.005
+  z_bias: -0.0
+  x_degree: 0.0
+  y_degree: 0.0
+  z_degree: 0.0
+  clouds_filename: "1.pcd 2.pcd 3.pcd 4.pcd 5.pcd 6.pcd 7.pcd 8.pcd 9.pcd 10.pcd 11.pcd 12.pcd 13.pcd 14.pcd 15.pcd 16.pcd"
+  matrix_filename: "transform_matrix.txt"
+  pose_degree: 0.0
+  rotate_degree: 22.50
+
+voxel1:
+  size: 0.001
+
+outlier:
+  meank: 5
+  threshold: 2.0
+
+poisson:
+  search_radius: 0.016
+  polynomial_fit: 0
+  polynomial_order: 2
+  ksearch: 10
+  confidence: 1
+  degree: 2
+  depth: 9
+  ISO: 8
+  manifold: 1
+  polygon: 1
+  smooth: 12.0
+  scale: 1.2
+  solver: 8
+  min_depth: 8
+
+# feature extraction parameter config
+
+slides:
+  slides_size: 300
+  interval: 0.003
+  epsilon: 0.0015
+  search_base: 0.0
+  search_num: 300
+  threshold: 1e-7
+  slide_points: 20
+  valid_height: 0.0
+  order: 1
+
+
