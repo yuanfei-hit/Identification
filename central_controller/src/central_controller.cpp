@@ -210,6 +210,10 @@ void CentralController::getGripperToBasePose(const geometry_msgs::Pose&         
 	setPose(q, p, g2b_initial_b);
 
 	//=== For acquiring tactile feature ===//
+	gripper2base_pose.push_back(g2b_initial_a);
+	enable_gripper_control_flag.push_back(false);
+	enable_clamping_mode.push_back(false);
+
 	g2b_next = g2b_initial_a;
 	g2b_next.position.z = object2base_pose.position.z + 0.10;
 	for (int i=0; i<20; i++)
@@ -531,6 +535,7 @@ void CentralController::generateCommands(const identification_msgs::PlannerState
 						while ((tactile_processor_states.contact_feature_valid_flag == false) &&
 							   (planner_states.finger_contact_failure_flag[0] == false))
 							usleep(10000);//0.01s
+						sleep(1);//1s
 					}
 					else
 					{

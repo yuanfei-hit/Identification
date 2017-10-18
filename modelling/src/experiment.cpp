@@ -12,6 +12,14 @@ PointCloudT::Ptr loadPointCloud (string filename )
 	return cloud;
 }
 
+PointCloudNT::Ptr loadPointCloudNT (string filename )
+{
+	PointCloudNT::Ptr cloud( new PointCloudNT );
+	pcl::PCDReader reader;
+	reader.read<PointNT> ( filename, *cloud );
+	return cloud;
+}
+
 int getCommandInt(char* command)
 {
 	int result;
@@ -97,8 +105,42 @@ void visualizePointCloud(vector<PointCloudT::Ptr> clouds)
 		viewer.addPointCloud (clouds[i], handle, "cloud_visualization"+index);
 		viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, "cloud_visualization"+index);
 	}
-	viewer.addCoordinateSystem (0.01, 0, 0, 0);
+	viewer.addCoordinateSystem (0.1, 0, 0, 0);
 	viewer.setBackgroundColor(0.05, 0.05, 0.05, 0); 
+	while (!viewer.wasStopped ())
+	{
+		viewer.spinOnce ();
+	}
+}
+
+void visualizePointCloud(vector<PointCloudNT::Ptr> clouds)
+{
+   RGB rgbs[] = {
+            RGB(255,   0,   0),
+            RGB(255, 165,   0),
+            RGB(255, 255,   0),
+            RGB(  0, 255,   0),
+            RGB(  0, 127, 255),
+            RGB(  0,   0, 255),
+            RGB(139,   0, 255),
+            RGB(  0,   0,   0),
+            RGB(255, 255,   0),
+			RGB(255, 127,   0),
+			RGB(255, 127, 127),
+			RGB(255, 127, 255)};
+	pcl::visualization::PCLVisualizer viewer("cloud");
+	for (int i = 0; i < clouds.size(); i++)
+	{
+		ColorHandlerNT handle (clouds[i], rgbs[i%12].getR(), rgbs[i%12].getG(), rgbs[i%12].getB());
+		stringstream ss;
+		string index;
+		ss << i;
+		ss >> index;
+		viewer.addPointCloud (clouds[i], handle, "cloud_visualization"+index);
+		viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5, "cloud_visualization"+index);
+	}
+	viewer.addCoordinateSystem (0.1, 0, 0, 0);
+	viewer.setBackgroundColor(0.05, 0.05, 0.05, 0);
 	while (!viewer.wasStopped ())
 	{
 		viewer.spinOnce ();
@@ -224,6 +266,16 @@ int main(int argc, char** argv)
 		for (int i = 2; i < argc; i++)
 		{
 			PointCloudT::Ptr cloud = loadPointCloud(string(argv[i]));
+			clouds.push_back(cloud);
+		}
+		visualizePointCloud(clouds);
+	}
+	else if (string(argv[1]) == "--showNT")
+	{
+		vector<PointCloudNT::Ptr> clouds;
+		for (int i = 2; i < argc; i++)
+		{
+			PointCloudNT::Ptr cloud = loadPointCloudNT(string(argv[i]));
 			clouds.push_back(cloud);
 		}
 		visualizePointCloud(clouds);

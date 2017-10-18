@@ -6,6 +6,7 @@
  */
 
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <math.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
@@ -15,6 +16,7 @@
 #include <identification_msgs/TactileProcessorControlCommands.h>
 #include <identification_msgs/TactileProcessorStates.h>
 #include <kdl/frames.hpp>
+#include <fstream>
 
 class TactileProcessorClass
 {
@@ -29,6 +31,14 @@ private:
 
 	identification_msgs::TactileProcessorControlCommands tactile_processor_control_commands;
 	identification_msgs::TactileProcessorStates          tactile_processor_states;
+
+	std::vector<float> compression_distance;
+	std::vector<float> compression_force;
+	std::vector<float> contact_force_0;
+	std::vector<float> contact_force_1;
+	std::vector<float> contact_force_2;
+	std::string path;
+	bool save_flag[3];
 
 	ros::Subscriber thumb_tactile_force_sub;
 	ros::Subscriber finger1_tactile_force_sub;
@@ -48,6 +58,7 @@ private:
 	void finger2TactileForceCallback(const geometry_msgs::WrenchStamped& msg);
 	void timerEventCallback(const ros::TimerEvent& event);
 	void tactileProcessorControlCommandCallback(const identification_msgs::TactileProcessorControlCommands& msg);
+	void saveVectorValue(std::string filename, std::vector<float> value);
 };
 
 TactileProcessorClass::TactileProcessorClass()
@@ -64,6 +75,9 @@ TactileProcessorClass::TactileProcessorClass()
 
 	tactile_processor_states.fingertip_contact_pose.resize(3);
 	tactile_processor_states.contact_feature_valid_flag = false;
+
+	path = ros::package::getPath("identifier") + "/ExpData/";
+	for (int i = 0; i < 3; i ++) save_flag[i] = false;
 
 	thumb_tactile_force_sub   = nh.subscribe("/thumb_tactile_force", 1, &TactileProcessorClass::thumbTactileForceCallback, this);
 	finger1_tactile_force_sub = nh.subscribe("/finger1_tactile_force", 1, &TactileProcessorClass::finger1TactileForceCallback, this);
@@ -94,9 +108,24 @@ void TactileProcessorClass::thumbTactileForceCallback(const geometry_msgs::Wrenc
 		tactile_processor_states.fingertip_contact_pose_valid_flag[0] = false;
 		tactile_processor_states.contact_feature_valid_flag = false;
 		initial_distance_record_flag = false;
+
+		if (save_flag[0] == true)
+		{
+			save_flag[0] = false;
+			saveVectorValue(path + "finger_0_contact_force_timing.txt", contact_force_0);
+			saveVectorValue(path + "compression_distance_timing.txt", compression_distance);
+			saveVectorValue(path + "compression_force_timing.txt", compression_force);
+			contact_force_0.clear();
+			compression_distance.clear();
+			compression_force.clear();
+		}
 	}
 	else
 	{
+		save_flag[0] = true;
+		contact_force_0.push_back(tactile_processor_states.current_tactile_force[0]);
+		//ROS_INFO_STREAM("current_force: "<<tactile_processor_states.current_tactile_force[0]);
+
 		//-------calculate contact pose in finger-tip frame-----------//
 		if (tactile_processor_states.current_tactile_force[0] > contact_event_force_threshold)
 		{
@@ -162,15 +191,19 @@ void TactileProcessorClass::thumbTactileForceCallback(const geometry_msgs::Wrenc
 					double s0 = 0.066;//unit:m
 					double delta_compression_distance = sqrt(s1*s1 + s0*s0/4.0) - sqrt(s2*s2 + s0*s0/4.0);
 
+					if (delta_compression_distance > 0.0001)
+					{
+						tactile_processor_states.contact_feature = tactile_processor_states.current_tactile_force[0]/delta_compression_distance;//unit:N/m
+						//ROS_INFO_STREAM("tactile feature: "<<tactile_processor_states.contact_feature);
+					}
+
+					compression_distance.push_back(delta_compression_distance);
+					compression_force.push_back(tactile_processor_states.current_tactile_force[0]);
+
 					if((tactile_processor_states.current_tactile_force[0] >= max_contact_force_threshold) ||
 					   (delta_compression_distance >= max_compression_threshold))
 					{
-						if (delta_compression_distance > 0.0001)
-						{
-							tactile_processor_states.contact_feature_valid_flag = true;
-							tactile_processor_states.contact_feature = tactile_processor_states.current_tactile_force[0]/delta_compression_distance;//unit:N/m
-	//						ROS_INFO_STREAM("tactile feature: "<<tactile_processor_states.contact_feature);
-						}
+						tactile_processor_states.contact_feature_valid_flag = true;
 					}
 				}
 				catch(tf::LookupException& ex)
@@ -200,9 +233,18 @@ void TactileProcessorClass::finger1TactileForceCallback(const geometry_msgs::Wre
 	{
 		tactileForceOffset[1] = msg;
 		tactile_processor_states.fingertip_contact_pose_valid_flag[1] = false;
+		if (save_flag[1] == true)
+		{
+			save_flag[1] = false;
+			saveVectorValue(path + "finger_1_contact_force_timing.txt", contact_force_1);
+			contact_force_1.clear();
+		}
 	}
 	else
 	{
+		save_flag[1] = true;
+		contact_force_1.push_back(tactile_processor_states.current_tactile_force[1]);
+
 		//-------calculate contact pose in finger-tip frame-----------//
 		if (tactile_processor_states.current_tactile_force[1] > contact_event_force_threshold)
 		{
@@ -252,9 +294,18 @@ void TactileProcessorClass::finger2TactileForceCallback(const geometry_msgs::Wre
 	{
 		tactileForceOffset[2] = msg;
 		tactile_processor_states.fingertip_contact_pose_valid_flag[2] = false;
+		if (save_flag[2] == true)
+		{
+			save_flag[2] = false;
+			saveVectorValue(path + "finger_2_contact_force_timing.txt", contact_force_2);
+			contact_force_2.clear();
+		}
 	}
 	else
 	{
+		save_flag[2] = true;
+		contact_force_2.push_back(tactile_processor_states.current_tactile_force[2]);
+
 		//-------calculate contact pose in finger-tip frame-----------//
 		if (tactile_processor_states.current_tactile_force[2] > contact_event_force_threshold)
 		{
@@ -299,6 +350,15 @@ void TactileProcessorClass::timerEventCallback(const ros::TimerEvent& event)
 void TactileProcessorClass::tactileProcessorControlCommandCallback(const identification_msgs::TactileProcessorControlCommands& msg)
 {
 	tactile_processor_control_commands = msg;
+}
+
+void TactileProcessorClass::saveVectorValue(std::string filename, std::vector<float> value)
+{
+	std::ofstream file;
+    file.open(filename.c_str());
+    for (int i = 0; i < value.size(); i++)
+    	file << value[i] << "\n";
+    file.close();
 }
 
 int main(int argc, char** argv)

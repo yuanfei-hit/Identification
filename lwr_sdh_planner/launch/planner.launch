@@ -4,7 +4,7 @@
   <arg name="lwr_chain_end"    default="sdh_hand_gripper" /> 
   <arg name="timeout"          default="0.05" />  
   <arg name="arm_online_test"  default="off" /> 
-  <arg name="hand_online_test" default="off" />   
+  <arg name="hand_online_test" default="on" />   
 
   <!--param name="robot_description" textfile="$(find lwr_defs)/robots/lwr_hand_tactile.urdf" /-->
   <param name="robot_description_semantic" textfile="$(find lwr_sdh_planner)/resources/lwr_simplified.srdf" />

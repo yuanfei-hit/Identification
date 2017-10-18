@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   identification_msgs
   kdl_conversions
+  roslib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -106,15 +107,17 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES tactile_processor
+ # INCLUDE_DIRS include
+ # LIBRARIES tactile_processor
   CATKIN_DEPENDS 
   geometry_msgs 
-  roscpp rospy 
+  roscpp
+  rospy 
   tf 
   identification_msgs
   kdl_conversions
-#  DEPENDS system_lib
+  roslib
+ # DEPENDS system_lib
 )
 
 ###########

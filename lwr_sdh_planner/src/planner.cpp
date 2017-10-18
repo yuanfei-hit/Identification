@@ -432,9 +432,9 @@ void PlannerClass::handJointPlanner(const sensor_msgs::JointState& hand_initial_
 
 	l[0]          = 0.0865; //unit meter
 	l[1]          = 0.0620; //unit meter
-	end_px        = 0.0;//0.01;   //unit meter
+	end_px        = 0.005;  //unit meter
 
-	interval_px   = 0.0005; //unit meter
+	interval_px   = 0.00025; //unit meter
 	interval_time = 0.1;    //unit second
 
 	delta_angle   = M_PI*68.23/180.0;
@@ -451,7 +451,7 @@ void PlannerClass::handJointPlanner(const sensor_msgs::JointState& hand_initial_
 	num_cartesian_space_plan = (end_px - init_px)/interval_px;
 
 	//=================================================//
-	double interval_angle = 0.5*M_PI/180.0;
+	double interval_angle = 0.25*M_PI/180.0;
 	int num_temp[2];
 
 	num_temp[0] = fabs(init_angle[0] - hand_initial_joint.position[1])/interval_angle;

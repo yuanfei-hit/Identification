@@ -1062,16 +1062,18 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 			for (int j=0; j<num_submodel; j++)
 			{
 				*desired_object_cloud = *model.raw[j];
-				recognizeTargetBasedOnVisualPointCloud(desired_object_cloud, target_cloud, temp_transformation[j], temp_fitness_score[j]);
 
 				temp_percentage[j] = (float) clustered_cloud[i].size()/desired_object_cloud->size(); //Both clouds have been filtered by using pcl::VoxelGrid with 0.005 leaf in camera space.
+
+				if (fabs(temp_percentage[j] - 1) < 0.1)
+					temp_valid_flag[j] = true;
+
+				if (temp_valid_flag[j] == true)
+					recognizeTargetBasedOnVisualPointCloud(desired_object_cloud, target_cloud, temp_transformation[j], temp_fitness_score[j]);
 
 				ROS_WARN_STREAM("temp_fitness_score_"<<j<<": "<<temp_fitness_score[j]); //for debug
 				ROS_WARN_STREAM("temp_percentage_"<<j<<": "<<temp_percentage[j]); //for debug
 			}
-
-			for (int j=0; j<num_submodel; j++)
-				if (fabs(temp_percentage[j] - 1) < 0.1) temp_valid_flag[j] = true;
 
 			float min_value       = 1.0;
 			int   min_value_index = 0;
@@ -1254,6 +1256,7 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 				{
 					if (tactile_processor_states.contact_feature_valid_flag == true)
 					{
+						usleep(500000);//0.5s
 						contact_feature.push_back(tactile_processor_states.contact_feature);
 						ROS_WARN_STREAM("contact feature:"<<tactile_processor_states.contact_feature);
 					}
@@ -1279,11 +1282,18 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 
 			for(int j=0; j<3; j++)
 			{
+				PointCloudNT::Ptr source_cloud (new PointCloudNT);
+				PointCloudT::Ptr target_cloud (new PointCloudT);
+
+				*source_cloud = contact_point_cloud[j];
+				copyPointCloud (*source_cloud, *target_cloud);
+
 				if (contact_point_cloud[j].size() > 0)
 				{
 					ss.str("");
 					ss << j;
-					writer.write<PointNT> (path + "_finger_" + ss.str () + ".pcd", contact_point_cloud[j], false);
+					writer.write<PointNT> (path + "_finger_" + ss.str () + "_NT.pcd", contact_point_cloud[j], false);
+					writer.write<PointT> (path + "_finger_" + ss.str () + "_T.pcd", *target_cloud, false);
 				}
 				else
 					ROS_INFO_STREAM("Contact point cloud of finger_"<<j<<" is empty.");
