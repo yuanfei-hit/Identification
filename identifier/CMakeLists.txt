@@ -135,7 +135,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 #   src/${PROJECT_NAME}/identifier.cpp
 # )
 
-add_executable (identifier src/identifier.cpp include/model.cpp)
+add_executable (identifier src/identifier.cpp include/model.cpp include/recog.cpp)
 target_link_libraries (identifier ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(identifier identification_msgs_gencpp)
 

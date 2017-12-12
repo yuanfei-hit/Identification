@@ -25,8 +25,8 @@ public:
     vector<int> trimmed_slice_index;
     //-----     slices' corresponding key points     -----
 	vector<PointCloudT::Ptr> keys;
-    //-----     texture: stiffness, has not used yet     -----
-    float texture;
+    //-----     texture: stiffness(mean & Standard Deviation)     -----
+    vector<float> texture;
     //-----     constructor, used in saving database     -----
     Model(int id, string name, vector<PointCloudT::Ptr> raw, vector<PointCloudT::Ptr> slices, vector<PointCloudT::Ptr> keys, vector<pair<float, float> > spans, vector<int> trimmed_slice_index, float height);
     //-----     constructor, used in reading databse     ----

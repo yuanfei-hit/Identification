@@ -127,7 +127,12 @@ void TactileProcessorClass::thumbTactileForceCallback(const geometry_msgs::Wrenc
 		//ROS_INFO_STREAM("current_force: "<<tactile_processor_states.current_tactile_force[0]);
 
 		//-------calculate contact pose in finger-tip frame-----------//
-		if (tactile_processor_states.current_tactile_force[0] > contact_event_force_threshold)
+		static double force_memory[2] = {0};
+		force_memory[1] = force_memory[0];
+		force_memory[0] = tactile_processor_states.current_tactile_force[0];
+
+		if ((force_memory[0] > contact_event_force_threshold) &&
+		    (force_memory[1] > contact_event_force_threshold))
 		{
 //			ROS_INFO_STREAM("calculate contact pose and send transform ");
 			double r     = 0.015;//unit:m
@@ -246,7 +251,12 @@ void TactileProcessorClass::finger1TactileForceCallback(const geometry_msgs::Wre
 		contact_force_1.push_back(tactile_processor_states.current_tactile_force[1]);
 
 		//-------calculate contact pose in finger-tip frame-----------//
-		if (tactile_processor_states.current_tactile_force[1] > contact_event_force_threshold)
+		static double force_memory[2] = {0};
+		force_memory[1] = force_memory[0];
+		force_memory[0] = tactile_processor_states.current_tactile_force[1];
+
+		if ((force_memory[0] > contact_event_force_threshold) &&
+			(force_memory[1] > contact_event_force_threshold))
 		{
 //			ROS_INFO_STREAM("calculate contact pose and send transform ");
 			double r     = 0.015;//unit:m
@@ -307,7 +317,12 @@ void TactileProcessorClass::finger2TactileForceCallback(const geometry_msgs::Wre
 		contact_force_2.push_back(tactile_processor_states.current_tactile_force[2]);
 
 		//-------calculate contact pose in finger-tip frame-----------//
-		if (tactile_processor_states.current_tactile_force[2] > contact_event_force_threshold)
+		static double force_memory[2] = {0};
+		force_memory[1] = force_memory[0];
+		force_memory[0] = tactile_processor_states.current_tactile_force[2];
+
+		if ((force_memory[0] > contact_event_force_threshold) &&
+			(force_memory[1] > contact_event_force_threshold))
 		{
 //			ROS_INFO_STREAM("calculate contact pose and send transform ");
 			double r     = 0.015;//unit:m

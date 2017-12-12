@@ -181,10 +181,10 @@ void CentralController::getGripperToBasePose(const geometry_msgs::Pose&         
 												   std::vector<bool>&                enable_gripper_control_flag,
 												   std::vector<bool>&                enable_clamping_mode)
 {
-	tf::StampedTransform transform;
-	listener.lookupTransform("base", "camera_rgb_optical_frame", ros::Time(0), transform);
+//	tf::StampedTransform transform;
+//	listener.lookupTransform("base", "camera_rgb_optical_frame", ros::Time(0), transform);
 
-	double angle = atan2((object2base_pose.position.y - transform.getOrigin().getY()), (object2base_pose.position.x - transform.getOrigin().getX()));
+//	double angle = atan2((object2base_pose.position.y - transform.getOrigin().getY()), (object2base_pose.position.x - transform.getOrigin().getX()));
 	//------------------------------------------------------------------------------------------//
 	//-----------------------------Calculate gripper desired pose-------------------------------//
 	//------------------------------------------------------------------------------------------//
@@ -209,19 +209,19 @@ void CentralController::getGripperToBasePose(const geometry_msgs::Pose&         
 	p.setValue(0.5, -0.5, 0.40);
 	setPose(q, p, g2b_initial_b);
 
-	//=== For acquiring tactile feature ===//
+/*	//=== For acquiring tactile feature ===//
 	gripper2base_pose.push_back(g2b_initial_a);
 	enable_gripper_control_flag.push_back(false);
 	enable_clamping_mode.push_back(false);
 
 	g2b_next = g2b_initial_a;
-	g2b_next.position.z = object2base_pose.position.z + 0.10;
+	g2b_next.position.z = object2base_pose.position.z + 0.11;
 	for (int i=0; i<20; i++)
 	{
 		gripper2base_pose.push_back(g2b_next);
 		enable_gripper_control_flag.push_back(true);
 		enable_clamping_mode.push_back(true);
-	}
+	}*/
 
 /*	//== Test grasp space range. ===//
 	q.setRPY(0.0, 0.0, 0.0);
@@ -235,44 +235,47 @@ void CentralController::getGripperToBasePose(const geometry_msgs::Pose&         
 	transformPose(g2b_initial_b, g2g_next, g2b_start_b);
 */
 
-/*	//=== Set g2b_start_* pose. ===//
+	//=== Set g2b_start_* pose. ===//
+    double search_distance = 0.03-0.01; //Its value should be determined based on point cloud.
+    double compensation_distance = 0.03-0.015;
 	double ux = 0.7;
-	double lx = 0.56;
-	double uy = -0.46;
+	double lx = 0.5 + search_distance;
+	double uy = -0.4 - search_distance;
 	double ly = -0.6;
+
 	g2b_start_a = g2b_initial_a;
 	g2b_start_b = g2b_initial_b;
 
 	if (object2base_pose.position.x < lx)
 	{
 		g2b_start_a.position.x = lx;
-		g2b_start_b.position.x = lx - 0.06;
+		g2b_start_b.position.x = lx - compensation_distance;
 	}
 	else if (object2base_pose.position.x > ux)
 	{
 		g2b_start_a.position.x = ux;
-		g2b_start_b.position.x = ux - 0.06;
+		g2b_start_b.position.x = ux - compensation_distance;
 	}
 	else
 	{
-		g2b_start_a.position.x = object2base_pose.position.x;
-		g2b_start_b.position.x = object2base_pose.position.x - 0.06;
+		g2b_start_a.position.x = object2base_pose.position.x - 0.02;
+		g2b_start_b.position.x = object2base_pose.position.x - compensation_distance - 0.03;
 	}
 
 	if (object2base_pose.position.y < ly)
 	{
-		g2b_start_a.position.y = ly + 0.06;
+		g2b_start_a.position.y = ly + compensation_distance;
 		g2b_start_b.position.y = ly;
 	}
 	else if (object2base_pose.position.y > uy)
 	{
-		g2b_start_a.position.y = uy + 0.06;
+		g2b_start_a.position.y = uy + compensation_distance;
 		g2b_start_b.position.y = uy;
 	}
 	else
 	{
-		g2b_start_a.position.y = object2base_pose.position.y + 0.06;
-		g2b_start_b.position.y = object2base_pose.position.y;
+		g2b_start_a.position.y = object2base_pose.position.y + compensation_distance;
+		g2b_start_b.position.y = object2base_pose.position.y - 0.02;
 	}
 
 	gripper2base_pose.push_back(g2b_home);
@@ -292,75 +295,129 @@ void CentralController::getGripperToBasePose(const geometry_msgs::Pose&         
 	int index = database.search(model.id);
 	std::vector<float> height = database.slice_heights[index];
 
-//	double delta = 0.005;
-//	double grasp_num;
-
-//	if ((model.id == 3) && (model.id == 4))
-
-	for(int i=0; i<height.size(); i++)
+	if (database.similar_stiffness_model_ids[index].empty())
 	{
-		for(int j=0; j<(0.06/0.005); j++)
-		{
-			q.setRPY(0.0, 0.0, 0.0);
-			p.setValue(0.0, pow(-1.0, (double)i)*0.005, 0.0);
-			setPose(q, p, g2g_next);
-			transformPose(g2b_current, g2g_next, g2b_next);
-			//=== According to model layer information to adjust the pz value of g2b_next. ===//
-			g2b_next.position.z = object2base_pose.position.z + height[i];
+		//=== For acquiring tactile feature ===//
+		g2b_next = g2b_current;
+		g2b_next.position.z = object2base_pose.position.z + 0.11;
 
-			std::cout<< height[i];
-			g2b_current = g2b_next;
+		gripper2base_pose.push_back(g2b_next);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
+
+		for(int i = 0; i <= 6; i ++)
+		{
+			g2b_next.position.y = object2base_pose.position.y + 0.015;
 
 			gripper2base_pose.push_back(g2b_next);
-			enable_gripper_control_flag.push_back(false);//(true);
-			enable_clamping_mode.push_back(false);
+			enable_gripper_control_flag.push_back(true);
+			enable_clamping_mode.push_back(true);
 		}
+
+		gripper2base_pose.push_back(g2b_initial_a);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
+
+		gripper2base_pose.push_back(g2b_home);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
 	}
-
-	gripper2base_pose.push_back(g2b_initial_a);
-	enable_gripper_control_flag.push_back(false);
-	enable_clamping_mode.push_back(false);
-
-	gripper2base_pose.push_back(g2b_home);
-	enable_gripper_control_flag.push_back(false);
-	enable_clamping_mode.push_back(false);
-
-	gripper2base_pose.push_back(g2b_initial_b);
-	enable_gripper_control_flag.push_back(false);
-	enable_clamping_mode.push_back(false);
-
-	gripper2base_pose.push_back(g2b_start_b);
-	enable_gripper_control_flag.push_back(false);
-	enable_clamping_mode.push_back(false);
-
-	g2b_current = g2b_start_b;
-
-	for(int i=0; i<height.size(); i++)
+	else
 	{
-		for(int j=0; j<(0.06/0.005); j++)
+		for (int i = 0; i < height.size(); i ++)
 		{
-			q.setRPY(0.0, 0.0, 0.0);
-			p.setValue(0.0, pow(-1.0, (double)i)*0.005, 0.0);
-			setPose(q, p, g2g_next);
-			transformPose(g2b_current, g2g_next, g2b_next);
-			//=== According to model layer information to adjust the pz value of g2b_next. ===//
-			g2b_next.position.z = object2base_pose.position.z + height[i];
-
-			g2b_current = g2b_next;
-
-			gripper2base_pose.push_back(g2b_next);
-			enable_gripper_control_flag.push_back(false);//(true);
-			enable_clamping_mode.push_back(false);
+			if (height[i] < 0.11)
+				height[i] = height[i] + 0.033;
+			else
+				height[i] = height[i] - 0.033;
 		}
+
+		for(int i = 0; i < height.size(); i ++)
+		{
+			for(int j = 0; j <= (search_distance/0.005); j ++)
+			{
+				q.setRPY(0.0, 0.0, 0.0);
+				if (j == 0)
+					p.setValue(0.0, 0.0, 0.0);
+				else
+					p.setValue(0.0, pow(-1.0, (double)i)*0.005, 0.0);
+				setPose(q, p, g2g_next);
+				transformPose(g2b_current, g2g_next, g2b_next);
+				//=== According to model layer information to adjust the pz value of g2b_next. ===//
+				g2b_next.position.z = object2base_pose.position.z + height[i];
+
+				g2b_current = g2b_next;
+
+				gripper2base_pose.push_back(g2b_next);
+				enable_gripper_control_flag.push_back(true);
+				enable_clamping_mode.push_back(false);
+			}
+		}
+
+		gripper2base_pose.push_back(g2b_initial_a);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
+
+		gripper2base_pose.push_back(g2b_home);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
+
+		gripper2base_pose.push_back(g2b_initial_b);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
+
+		gripper2base_pose.push_back(g2b_start_b);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
+
+		g2b_current = g2b_start_b;
+
+		bool flag = false;
+
+		for(int i = 0; i < height.size(); i ++)
+		{
+			for(int j = 0; j <= (search_distance/0.005); j ++)
+			{
+				q.setRPY(0.0, 0.0, 0.0);
+				if (j == 0)
+					p.setValue(0.0, 0.0, 0.0);
+				else
+					p.setValue(0.0, pow(-1.0, (double)i)*0.005, 0.0);
+				setPose(q, p, g2g_next);
+				transformPose(g2b_current, g2g_next, g2b_next);
+				//=== According to model layer information to adjust the pz value of g2b_next. ===//
+				g2b_next.position.z = object2base_pose.position.z + height[i];
+
+				g2b_current = g2b_next;
+
+				//For acquiring tactile feature
+				if(( i == (height.size() -1)) && (j == 3))
+					flag = true;
+				if(flag == true)
+				{
+					flag = false;
+					for (int k = 0; k < 6; k ++)
+					{
+						gripper2base_pose.push_back(g2b_next);
+						enable_gripper_control_flag.push_back(true);
+						enable_clamping_mode.push_back(true);
+					}
+				}
+
+				gripper2base_pose.push_back(g2b_next);
+				enable_gripper_control_flag.push_back(true);
+				enable_clamping_mode.push_back(false);
+			}
+		}
+
+		gripper2base_pose.push_back(g2b_initial_b);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
+
+		gripper2base_pose.push_back(g2b_home);
+		enable_gripper_control_flag.push_back(false);
+		enable_clamping_mode.push_back(false);
 	}
-
-	gripper2base_pose.push_back(g2b_initial_b);
-	enable_gripper_control_flag.push_back(false);
-	enable_clamping_mode.push_back(false);
-
-	gripper2base_pose.push_back(g2b_home);
-	enable_gripper_control_flag.push_back(false);
-	enable_clamping_mode.push_back(false);*/
 }
 
 void CentralController::transformPose(const geometry_msgs::Pose& old2base_pose,

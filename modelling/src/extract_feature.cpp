@@ -86,8 +86,6 @@ void FeatureExtraction::extractSlices()
 	for (int i = 0; i < this->slices_size; i++)
 	{
 		this->search_base += this->interval;
-		int begin = index;
-		set<float> potential_zs;
 		map<float, vector<PointT> > mapping;
 		bool flag = false;
 		PointCloudT::Ptr slice(new PointCloudT);
@@ -95,7 +93,6 @@ void FeatureExtraction::extractSlices()
 		{
 			if (this->cloud->points[index].z > this->search_base - this->epsilon && this->cloud->points[index].z < this->search_base + this->epsilon)
 			{
-				potential_zs.insert(this->cloud->points[index].z);
 				mapping[this->cloud->points[index].z].push_back(this->cloud->points[index]);
 				flag = true;
 			}
@@ -110,7 +107,6 @@ void FeatureExtraction::extractSlices()
 				break;
 			}
 		}
-		int end = index;
 		// sort(mapping.begin(), mapping.end(), sortMap);
 		map<float, vector<PointT> >::iterator it;
 		for (it = mapping.begin(); it!= mapping.end(); ++it)

@@ -5,40 +5,35 @@
 class Recog
 {
 public:
-    //-----     deault constructor     -----
+    //-----     default constructor     -----
     Recog();
     //-----     constructor, used to read models and database     -----
     Recog(vector<string> models_filename, string database_filename);
-    //-----     search a model ID in database     -----
-    void search(int id);
+    //-----     constructor, used to read database     -----
+    Recog(string database_filename);
     //-----     not implemented     -----
     ~Recog();
-    //-----     info     -----
-    void info();
     //-----     do recognition given visual, tactile and stiffness, stiffness has not been used yet     -----
-    vector<float> doRecognition(PointCloudT visual, PointCloudNT tactile, double stiffness);
+    bool isRecognitionSuccess(int model_id, PointCloudT& visual, PointCloudNT& tactile_0, PointCloudNT& tactile_1, PointCloudNT& tactile_2, std::vector<float>& stiffness);
+    //-----     visualization     -----
+    void visualizePointCloud(vector<PointCloudT::Ptr> cloud);
+    void visualizePointCloud(vector<PointCloudNT::Ptr> cloud);
 private:
-    //-----     model ID     -----
-    int id;
-    //-----     searched model's corresponding models' IDs     -----
-    vector<vector<int> > compare_ids;
-    //-----     searched model's corresponding models' spans     -----
-    vector<pair<float, float> > compare_spans;
-    //-----     searched model's corresponding models' heights     -----
-    vector<float> compare_heights;
-    //-----     searched model's corresponding models' slides' indexes     -----
-    vector<vector<int> > compare_slide_index;
-    //-----     readed models     -----
+    //-----     models     -----
     vector<Model> models;
-    //-----     database object     -----
+    //-----     database     -----
     Database database;
-    //-----     get searched model index in database     -----
-    int getModelIndex(int id);
-    //-----     get span index via height     -----
-    int getSpanIndex(float height);
-    //-----     ICP without Normal     -----
-    double getICPScore(PointCloudT::Ptr source, PointCloudT::Ptr target);
-    void rotatePointCloud(PointCloudT::Ptr &slide, float degree, char mode);
+    //-----     get searched model index in model vector     -----
+    int getModelIndex(int model_id);
     //-----     ICP using Normal     ----
-    float getICPScore(PointCloudT::Ptr cloud1, PointCloudT::Ptr cloud2, float degree);
+    std::pair<float, Eigen::Matrix4f> getAlignScoreAndTF(PointCloudT::Ptr source, PointCloudT::Ptr target, float degree);
+    std::pair<float, Eigen::Matrix4f> getAlignScoreAndTF(PointCloudT::Ptr source, PointCloudT::Ptr target);
+    //-----     extract slice point cloud     -----
+    PointCloudT::Ptr extractSlicePointCloud(PointCloudT& cloud, float z_height);
+    //-----     get stiffness similarity scores    -----
+    std::vector<std::pair<int, float> > getStiffnessSimilarityScores(int model_id, std::vector<float>& stiffness);
+    //-----     get slice scores     -----
+    std::vector<std::pair<int, std::vector<std::pair<int, float> > > > getSliceScores(int model_id, PointCloudT& visual, PointCloudNT& tactile_0, PointCloudNT& tactile_1, PointCloudNT& tactile_2);
+    //-----     get point index of z value closest to the z_height     -----
+    int getClosestPointIndex(PointCloudT& cloud, float z_height);
 };

@@ -4,43 +4,9 @@
 #include "extract_feature.h"
 #include "model.h"
 #include "model_builder.h"
+#include "recog.h"
 
-void visualizePointCloud ( PointCloudT::Ptr cloud, RGB rgb )
-{
-	pcl::visualization::PCLVisualizer viewer("cloud");
-	ColorHandlerT handle (cloud, rgb.getR(), rgb.getG(), rgb.getB());
-	viewer.addPointCloud (cloud, handle, "cloud_visualization");
-	viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud_visualization");
-	// viewer.addCoordinateSystem (0.2, "sensor", 0);
-    viewer.addCoordinateSystem (0.1, 0, 0, 0);
-	viewer.setBackgroundColor(0.05, 0.05, 0.05, 0); 
-	// viewer.initCameraParameters ();
-  	while (!viewer.wasStopped ())
-  	{
-  		viewer.spinOnce ();
-  	}
-}
-void visualizePointCloud ( PointCloudT::Ptr* cloud, RGB* rgb, int number)
-{
-	pcl::visualization::PCLVisualizer viewer("cloud");
-    for (int i = 0; i < number; i++)
-    {
-        ColorHandlerT handle (cloud[i], rgb[i].getR(), rgb[i].getG(), rgb[i].getB());   
-        stringstream ss;
-        string str;
-        ss << i;
-        str = "cloud_"+ss.str();
-        viewer.addPointCloud (cloud[i], handle, str);
-        viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, str);
-    }
-    viewer.addCoordinateSystem (0.1, 0, 0, 0);
-	viewer.setBackgroundColor(0., 0., 0., 0); 
-	// viewer.initCameraParameters ();
-  	while (!viewer.wasStopped ())
-  	{
-  		viewer.spinOnce ();
-  	}
-}
+
 int getCommandInt(char* command)
 {
 	int result;
@@ -90,7 +56,7 @@ int main(int argc, char** argv)
         printf(" --feature: feature extraction module               \n");
         printf(" --build: comparison database construction module   \n");
         printf(" --read: database reading module                    \n");
-        // printf(" --recog: recognition module                        \n");
+        printf(" --recog: recognition module                        \n");
         printf("____________________________________________________\n");
         return (-1);
     }
@@ -191,6 +157,66 @@ int main(int argc, char** argv)
 			printf("\n");
 		}
 		printf("|__________________________________| \n");
+    }
+    else if (cmd == "--recog")
+    {
+    	if (argc != 4)
+		{
+			cout << "***************     Usage:     ***************" << endl;
+			cout << "rosrun modelling main_node --recog [id] [common file name]" << endl;
+			return (-1);
+		}
+
+    	string database_filename = ros::package::getPath("knowledge_base") + "/models/database";
+
+		int id = getCommandInt(argv[2]);
+		string common_file_name = getCommandString(argv[3]);
+		Recog recog = Recog(database_filename);
+		PointCloudT  visual_cloud;
+		PointCloudNT tactile_0_cloud;
+		PointCloudNT tactile_1_cloud;
+		PointCloudNT tactile_2_cloud;
+		std::string path = ros::package::getPath("identifier") + "/ExpData/" + common_file_name;
+		pcl::PCDReader reader;
+		reader.read<PointT>  (path + "target.pcd", visual_cloud);
+		reader.read<PointNT> (path + "finger_0_NT.pcd", tactile_0_cloud);
+		reader.read<PointNT> (path + "finger_1_NT.pcd", tactile_1_cloud);
+		reader.read<PointNT> (path + "finger_2_NT.pcd", tactile_2_cloud);
+		std::vector<float> stiffness;
+		string filename = path + "contact_feature.txt";
+		fstream in(filename.c_str());
+		string line;
+		while(getline(in,line))
+		{
+			if (line.empty())
+				break;
+			else
+			{
+				stringstream ss(line);
+				float value;
+				ss >> value;
+				stiffness.push_back(value);
+			}
+		}
+		std::vector<PointCloudT::Ptr> show_cloud;
+		PointCloudT::Ptr temp1 (new PointCloudT);
+		PointCloudT::Ptr temp2 (new PointCloudT);
+		PointCloudT::Ptr temp3 (new PointCloudT);
+		PointCloudT::Ptr temp4 (new PointCloudT);
+		PointCloudT::Ptr temp5 (new PointCloudT);
+	    copyPointCloud (visual_cloud, *temp1);
+		show_cloud.push_back(temp1);
+		bool flag = recog.isRecognitionSuccess(id, visual_cloud, tactile_0_cloud, tactile_1_cloud, tactile_2_cloud, stiffness);
+		std::cout << "Recognition Flag: " << flag << std::endl;
+		copyPointCloud (visual_cloud, *temp2);
+		copyPointCloud (tactile_0_cloud, *temp3);
+		copyPointCloud (tactile_1_cloud, *temp4);
+		copyPointCloud (tactile_2_cloud, *temp5);
+		show_cloud.push_back(temp2);
+		show_cloud.push_back(temp3);
+		show_cloud.push_back(temp4);
+		show_cloud.push_back(temp5);
+		recog.visualizePointCloud(show_cloud);
     }
     else
     {

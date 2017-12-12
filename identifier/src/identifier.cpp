@@ -144,7 +144,7 @@ IdentifierClass::IdentifierClass()
 	pcl_xxx_filtered_cloud_valid_flag = false;
 
 	//=== Set constant transform marker frame to base frame ===//
-	marker2base_transform.setOrigin(tf::Vector3(0.245, -0.270, 0.02));     //x, y, z
+	marker2base_transform.setOrigin(tf::Vector3(0.35 - 0.105, -0.375 + 0.105, 0.02));     //x, y, z
 	marker2base_transform.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));//x, y, z, w
 
 	setCL2BaseTransform(update_crof2marker_transform,
@@ -1037,8 +1037,8 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 		PointCloudT::Ptr desired_object_cloud (new PointCloudT);
 		PointCloudT::Ptr target_cloud (new PointCloudT);
 
-		std::string path = ros::package::getPath("knowledge_base") + "/models/"+ identifier_control_commands.desired_object_name;
-		model = Model(path);
+		std::string model_file_path = ros::package::getPath("knowledge_base") + "/models/"+ identifier_control_commands.desired_object_name;
+		model = Model(model_file_path);
 
 		for(int i=0; i<clustered_cloud.size(); i++)
 		{
@@ -1119,7 +1119,7 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 		std::vector<float>           potential_target_fitness_score;
 		std::vector<int>             potential_target_source_file_index;
 		float min_fitness_score;
-		int   min_fitness_score_index;
+		int   min_fitness_score_index = 0;
 
 		for (int i=0; i<clustered_cloud.size(); i++)
 		{
@@ -1159,9 +1159,31 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 			//---------------convert Eigen::Matrix4f to geometry_msgs::Pose and output------------------//
 			//------------------------------------------------------------------------------------------//
 			geometry_msgs::Pose pose;
-			Eigen::Affine3d  transform;
-			transform.matrix() = potential_target_transformation[i].cast<double>();
-			tf::poseEigenToMsg(transform, pose);
+			Eigen::Affine3f  transform;
+			transform.matrix() = potential_target_transformation[i];
+			//std::cout << transform.matrix() << std::endl;
+			/////////////////////////////////////////////////
+			//Let z axis parallel to z axis of marker board//
+			/////////////////////////////////////////////////
+			Eigen::Matrix4f mf = potential_target_transformation[i];
+			tf::Vector3 v1, v2, v3;
+			v1.setValue(static_cast<double>(mf(0,2)), static_cast<double>(mf(1,2)), static_cast<double>(mf(2,2)));
+			v2 = marker2base_transform.getBasis().getColumn(2);
+			v3 = v1.cross(v2);
+			v1.normalize();
+			v2.normalize();
+			v3.normalize();
+			float anglef = v1.angle(v2);
+			Eigen::Matrix3f rot = mf.block<3, 3>(0, 0);
+			Eigen::Vector3f axisf (v3.x(), v3.y(), v3.z());
+			axisf = rot.inverse() * axisf;
+			axisf.normalize();
+			ROS_WARN_STREAM("Rotate angle (unit: degree): " << anglef*180/M_PI); //for debug
+			transform.rotate(Eigen::AngleAxisf(anglef, axisf));
+			std::cout << "Transform matrix of potential target..." << std::endl;
+			std::cout << transform.matrix() << std::endl;
+			/////////////////////////////////////////////////
+			tf::poseEigenToMsg(transform.cast<double>(), pose);
 			identifier_states.potential_target_source_file_index = potential_target_source_file_index[i];
 			identifier_states.potential_target_cluster_pose_in_arm_base_frame = pose;
 			identifier_states.potential_target_cluster_pose_valid_flag = true;
@@ -1172,7 +1194,7 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 			PointCloudNT contact_point_cloud[3];
 			bool   history_contact_valid_flag[3];
 			bool   history_contact_featrue_valid_flag;
-			std::vector<double> contact_feature;
+			std::vector<float> contact_feature;
 
 			//=== Waiting until grasp process command is true. ===//
 			ROS_INFO_STREAM("Waiting until grasp process command is true... ");
@@ -1269,7 +1291,7 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 			//------------------------------------------------------------------------------------------//
 			//------------Transform point cloud from base frame to potential_target frame---------------//
 			//------------------------------------------------------------------------------------------//
-			pcl::transformPointCloud (potential_target_clustered_cloud[i], potential_target_clustered_cloud[i], transform.inverse().cast<float>());
+			pcl::transformPointCloud (potential_target_clustered_cloud[i], potential_target_clustered_cloud[i], transform.inverse());
 			potential_target_clustered_cloud[i].header.frame_id = "potential_target";
 			//------------------------------------------------------------------------------------------//
 			//------------------------------------Save experimental data--------------------------------//
@@ -1293,53 +1315,43 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 					ss.str("");
 					ss << j;
 					writer.write<PointNT> (path + "_finger_" + ss.str () + "_NT.pcd", contact_point_cloud[j], false);
-					writer.write<PointT> (path + "_finger_" + ss.str () + "_T.pcd", *target_cloud, false);
+					writer.write<PointT>  (path + "_finger_" + ss.str () + "_T.pcd", *target_cloud, false);
 				}
 				else
 					ROS_INFO_STREAM("Contact point cloud of finger_"<<j<<" is empty.");
 			}
 
 			std::ofstream outfile ((path + "_contact_feature.txt").c_str());
-			vector<double>::iterator t;
+			vector<float>::iterator t;
 			for(t=contact_feature.begin(); t!=contact_feature.end(); t++)
 				outfile<<*t<<'\n';
 			outfile.close();
+
+			std::ofstream temp_outfile ((ros::package::getPath("identifier") + "/ExpData/" + "contact_feature.txt").c_str());
+			for(t=contact_feature.begin(); t!=contact_feature.end(); t++)
+				temp_outfile<<*t<<'\n';
+			temp_outfile.close();
 			//------------------------------------------------------------------------------------------//
 			//--------------------Re-estimate the i-th potential target cluster pose--------------------//
-			//------------------------------------------------------------------------------------------//
-
-			//------------------------------------------------------------------------------------------//
-			//--------------------Re-estimate the i-th potential target cluster pose--------------------//
-			//------------------------------------------------------------------------------------------//
-
 			//------------------------------------------------------------------------------------------//
 			//--------Extract the 2-D shape features of specific layers from fused point cloud----------//
 			//------------------------------------------------------------------------------------------//
-
-			//------------------------------------------------------------------------------------------//
-			//-----------------Combine shape and tactile features to form feature vector----------------//
-			//------------------------------------------------------------------------------------------//
-
-			//------------------------------------------------------------------------------------------//
 			//-------Computing similarity with desired object feature vector or object database---------//
 			//------------------------------------------------------------------------------------------//
-			double similarity_threshold = 0.8;
-			double similarity = 0.0;
-			//function code
-			if (similarity > similarity_threshold)
+			//-------------------------------------Fuse decision----------------------------------------//
+			//------------------------------------------------------------------------------------------//
+			std::string database_file_path = ros::package::getPath("knowledge_base") + "/models/database";
+			Recog recog = Recog(database_file_path);
+			bool flag = recog.isRecognitionSuccess(model.id, potential_target_clustered_cloud[i], contact_point_cloud[0], contact_point_cloud[1], contact_point_cloud[2], contact_feature);
+
+			writer.write<PointT>  (path + "_target_aligned.pcd", potential_target_clustered_cloud[i], false);
+
+			if (flag == true)
 			{
-				identifier_states.recognition_finished_flag = true;
 				identifier_states.recognition_success_flag  = true;
 				break;
 			}
 		}
-		//------------------------------------------------------------------------------------------//
-		//-------------------------------------Fuse decision----------------------------------------//
-		//------------------------------------------------------------------------------------------//
-
-		//------------------------------------------------------------------------------------------//
-		//------------------------------Finish recognition process----------------------------------//
-		//------------------------------------------------------------------------------------------//
 		identifier_states.recognition_finished_flag = true;
 		ROS_INFO_STREAM("Finish recognition process.");
 	}
@@ -1350,7 +1362,7 @@ void IdentifierClass::recognizeDesiredObjectFromScene(const PointCloudT& scene_c
 		identifier_states.recognition_success_flag  = false;
 		identifier_states.num_potential_target_valid_flag = false;
 		identifier_states.potential_target_cluster_pose_valid_flag = false;
-		identifier_states.num_potential_target      = 0;
+		identifier_states.num_potential_target = 0;
 	}
 }
 

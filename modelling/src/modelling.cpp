@@ -206,6 +206,14 @@ PointCloudT::Ptr Modelling::getModel()
                 j--;
             }
         }
+        //=======================debug===============================//
+        for (int j = 0; j < this->clouds[i]->points.size(); j++)
+		{
+        	float rate = 6.0/7.0;
+        	this->clouds[i]->points[j].x = rate * this->clouds[i]->points[j].x;
+        	this->clouds[i]->points[j].y = rate * this->clouds[i]->points[j].y;
+		}
+        //===========================================================//
         compare.push_back(this->clouds[i]);
        // visualizePointCloud(compare);
         rotatePointCloud(this->clouds[i], this->rotate_degree*i*M_PI/180., 'z');

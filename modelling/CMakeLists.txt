@@ -66,7 +66,7 @@ target_link_libraries(experiment_node
 #   ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS}
 # )
 
-add_executable(main_node src/main.cpp src/modelling.cpp src/properties.cpp src/extract_feature.cpp src/model.cpp src/model_builder.cpp)
+add_executable(main_node src/main.cpp src/modelling.cpp src/properties.cpp src/extract_feature.cpp src/model.cpp src/model_builder.cpp src/recog.cpp)
 target_link_libraries(main_node
   ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS}
 )

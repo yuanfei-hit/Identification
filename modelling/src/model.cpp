@@ -7,7 +7,8 @@ Model::Model()
     this->id = -1;
     this->name = "null";
     this->height = -1;
-    this->texture = -1;
+    this->texture.push_back(1000); //mean of stiffness
+    this->texture.push_back(100);  //Standard Deviation of stiffness
     // info();
 }
 Model::Model(string filename)
@@ -27,7 +28,51 @@ Model::Model(int id, string name, vector<PointCloudT::Ptr> raw, vector<PointClou
     this->trimmed_slice_index = trimmed_slice_index;
     this->slice_num = this->slices.size();
     this->raw_num = this->raw.size();
-    this->texture = -1;
+    if (id == 1)
+    {
+    	this->texture.push_back(4762.636895); //mean of stiffness
+    	this->texture.push_back( 521.152025);  //deviation of stiffness
+    }
+    else if(id == 2)
+    {
+    	this->texture.push_back(4958.124555); //mean of stiffness
+    	this->texture.push_back( 451.831271);  //deviation of stiffness
+    }
+    else if(id == 3)
+    {
+        this->texture.push_back(4786.338693); //mean of stiffness
+        this->texture.push_back( 387.481057);  //deviation of stiffness
+    }
+    else if(id == 4)
+	{
+		this->texture.push_back(4704.025475); //mean of stiffness
+		this->texture.push_back( 571.392384);  //deviation of stiffness
+	}
+    else if(id == 5)
+	{
+		this->texture.push_back(4336.618697); //mean of stiffness
+		this->texture.push_back( 374.747736);  //deviation of stiffness
+	}
+    else if(id == 6)
+	{
+		this->texture.push_back(2077.003648); //mean of stiffness
+		this->texture.push_back( 103.921871);  //deviation of stiffness
+	}
+    else if(id == 7)
+    {
+        this->texture.push_back( 984.631375); //mean of stiffness
+        this->texture.push_back(  77.937508);  //deviation of stiffness
+    }
+    else if(id == 8)
+    {
+        this->texture.push_back(3545.673355); //mean of stiffness
+        this->texture.push_back( 437.731372);  //deviation of stiffness
+    }
+    else if(id == 9)
+    {
+        this->texture.push_back(1294.616290); //mean of stiffness
+        this->texture.push_back( 161.603319);  //deviation of stiffness
+    }
     this->id = id;
     this->name = name;
     float max = -65535;
@@ -90,9 +135,14 @@ void Model::readModel(string filename)
         }
         else if (values[0] == "TEXTURE")
         {
-            stringstream ss_temp;
-            ss_temp << values[1];
-            ss_temp >> this->texture;
+            for (int i = 1; i < values.size(); i++)
+			{
+				stringstream ss_temp;
+				float float_temp;
+				ss_temp << values[i];
+				ss_temp >> float_temp;
+				this->texture.push_back(float_temp);
+			}
         }
         else if (values[0] == "HEIGHT")
         {
@@ -242,7 +292,10 @@ void Model::saveModel(string filename)
     file << "NAME " << this->name << "\n";
     file << "SLICE_NUM " << this->slice_num << "\n";
     file << "RAW_NUM " << this->raw_num << "\n";
-    file << "TEXTURE " << this->texture << "\n";
+    file << "TEXTURE ";
+    for (int i = 0; i < this->texture.size(); i ++)
+    	file << this->texture[i] << " ";
+    file << "\n";
     file << "HEIGHT " << this->height << "\n";
     file << "SPAN ";
     for (int i = 0; i < this->spans.size(); i ++)
@@ -301,7 +354,9 @@ void Model::info()
     printf("| name:             %s\n", this->name.c_str());
     printf("| slice_num:        %d\n", this->slice_num);
     printf("| raw_num:          %d\n", this->raw_num);
-    printf("| texture:          %f\n", this->texture);
+    printf("| texture             \n");
+    printf("| ---mean:          %f\n", this->texture[0]);
+    printf("| ---std:           %f\n", this->texture[1]);
     printf("| height:           %f\n", this->height);
     printf("| key num:          %d\n", (int)this->keys.size());
     printf("| span num:         %d\n", (int)this->spans.size());

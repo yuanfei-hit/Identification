@@ -8,7 +8,7 @@ sampling1:
   depth: 6
 
 modelling:
-  x_bias: 0.215
+  x_bias: 0.21
   y_bias: -0.005
   z_bias: -0.009
   x_degree: 0.0
@@ -51,7 +51,7 @@ slices:
   search_base: 0.03
   search_num: 800
   threshold: 2.5e-6
-  slide_points: 50
+  slice_points: 50
   valid_height: 0.0
   order: 0
 

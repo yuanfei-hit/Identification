@@ -6,7 +6,7 @@
 	<arg name="used_marker_frame"                   default="ar_marker_4" />
 	<!--arg name="used_marker_frame"                   default="ar_marker_9-17" /-->
 	
-	<arg name="num_of_recording_marker_frame"       default="10" />
+	<arg name="num_of_recording_marker_frame"       default="1" />
 	
 	
 	<node name="identifier_node" pkg="identifier" type="identifier" output="screen">

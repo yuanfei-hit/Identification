@@ -273,11 +273,22 @@ void ModelBuilder::buildSimilarModelDatabase()
 					similar_sli_model_ids.push_back(it->second.first[i]);
 
 			//Set similar stiffness model ids
-			vector<float> stiffness;
-			similar_sti_model_ids.push_back(2);
-			similar_sti_model_ids.push_back(5);
+			pair<float, float> stiffness = make_pair(this->models[model_index].texture[0], this->models[model_index].texture[1]);
+			for (int i = 0; i < it->second.first.size(); i ++)
+			{
+				int index = -1;
+				for (int j = 0; j < this->models.size(); j++)
+					if (it->second.first[i] == this->models[j].id)
+						index = j;
+				float delta = fabs(this->models[index].texture[0] - stiffness.first);
 
+				if(index == -1)    std::cout << "Cann't find the model id " << it->second.first[i];
 
+				if ((delta < this->models[index].texture[1]) && (delta < stiffness.second))
+					similar_sti_model_ids.push_back(it->second.first[i]);
+			}
+
+			//Set optimal slice ids
 			slice_ids = getOptimalSliceID(slice_index, slice_score, slice_score_threshold, 10000);
 
 			//Set slice heights and distinguished similar surface model ids

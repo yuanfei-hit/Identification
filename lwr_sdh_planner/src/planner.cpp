@@ -128,7 +128,7 @@ PlannerClass::PlannerClass()
 	handInitialJoint.position = {0.0, angle[0], angle[1], angle[0], angle[1], angle[0], angle[1]};
 
 	armInitialJoint.name = {"lwr_arm_0_joint", "lwr_arm_1_joint", "lwr_arm_2_joint", "lwr_arm_3_joint", "lwr_arm_4_joint", "lwr_arm_5_joint", "lwr_arm_6_joint"};
-	armInitialJoint.position = {0.0, -0.05235092341899872, 0.0, 1.518426775932312, 0.0, -0.9599822759628296, 0.0};
+	armInitialJoint.position = {0.01, -0.05235092341899872, -0.01, 1.518426775932312, 0.01, -0.9599822759628296, -0.01};
 
 	armJointStates  = armInitialJoint;
 	armDesireJoint  = armInitialJoint;
@@ -432,7 +432,7 @@ void PlannerClass::handJointPlanner(const sensor_msgs::JointState& hand_initial_
 
 	l[0]          = 0.0865; //unit meter
 	l[1]          = 0.0620; //unit meter
-	end_px        = 0.005;  //unit meter
+	end_px        = 0.02;  //unit meter
 
 	interval_px   = 0.00025; //unit meter
 	interval_time = 0.1;    //unit second
@@ -572,7 +572,10 @@ void PlannerClass::publishHandTrajectory(const identification_msgs::PlannerContr
 		{
 			for (int i=0; i<3; i++)
 			{
-				point_index[i] = point_index[i] - 5;
+				if (i == 0)
+					point_index[i] = point_index[i] - 7;
+				else
+					point_index[i] = point_index[i] - 5;
 				if (point_index[i] < 0) point_index[i] = 0;
 			}
 
